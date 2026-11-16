@@ -85,7 +85,11 @@ int ref_layout(char *out, int cap)
     F(goome_ui_config, repeat_ms); F(goome_ui_config, blink_ms); F(goome_ui_config, menu_delay_ms); F(goome_ui_config, toast_ms); F(goome_ui_config, scroll_lines);
     F(goome_ui_config, raise_on_click); F(goome_ui_config, esc_closes); F(goome_ui_config, tab_nav); F(goome_ui_config, focus_on_mouse); F(goome_ui_config, cursor);
     F(goome_ui_config, keys); F(goome_ui_config, ease); F(goome_ui_config, ease_user); F(goome_ui_config, mask);
-        return rf_len;
+    S(goome_a11y_node);
+    F(goome_a11y_node, role); F(goome_a11y_node, parent); F(goome_a11y_node, states); F(goome_a11y_node, x); F(goome_a11y_node, y);
+    F(goome_a11y_node, w); F(goome_a11y_node, h); F(goome_a11y_node, label); F(goome_a11y_node, value); F(goome_a11y_node, id);
+    F(goome_a11y_node, num); F(goome_a11y_node, min); F(goome_a11y_node, max); F(goome_a11y_node, caret);
+    return rf_len;
 }
 
 static const struct {
@@ -142,6 +146,8 @@ static const struct {
     {"GOOME_CLOSE", GOOME_CLOSE},
     {"GOOME_FOCUS", GOOME_FOCUS},
     {"GOOME_DROP", GOOME_DROP},
+    {"GOOME_TEXT", GOOME_TEXT},
+    {"GOOME_PREEDIT", GOOME_PREEDIT},
     {"GOOME_CURSOR_ARROW", GOOME_CURSOR_ARROW},
     {"GOOME_CURSOR_IBEAM", GOOME_CURSOR_IBEAM},
     {"GOOME_CURSOR_HAND", GOOME_CURSOR_HAND},
@@ -314,6 +320,9 @@ static const struct {
     {"GOOME_EASE_IN_OUT", GOOME_EASE_IN_OUT},
     {"GOOME_EASE_BACK", GOOME_EASE_BACK},
     {"GOOME_EASE_CUSTOM", GOOME_EASE_CUSTOM},
+    {"GOOME_EASE_IN", GOOME_EASE_IN},
+    {"GOOME_EASE_SPRING", GOOME_EASE_SPRING},
+    {"GOOME_EASE_BOUNCE", GOOME_EASE_BOUNCE},
     {"GOOME_SKIN_BUTTON", GOOME_SKIN_BUTTON},
     {"GOOME_SKIN_PANEL", GOOME_SKIN_PANEL},
     {"GOOME_SKIN_INPUT", GOOME_SKIN_INPUT},
@@ -367,7 +376,35 @@ static const struct {
     {"GOOME_CUR_CUSTOM_X", GOOME_CUR_CUSTOM_X},
     {"GOOME_CUR_CUSTOM_Y", GOOME_CUR_CUSTOM_Y},
     {"GOOME_CUR_CUSTOM_XY", GOOME_CUR_CUSTOM_XY},
-    {"GOOME_CUR_COUNT", GOOME_CUR_COUNT}
+    {"GOOME_CUR_COUNT", GOOME_CUR_COUNT},
+    {"GOOME_ROLE_NONE", GOOME_ROLE_NONE},
+    {"GOOME_ROLE_WINDOW", GOOME_ROLE_WINDOW},
+    {"GOOME_ROLE_BUTTON", GOOME_ROLE_BUTTON},
+    {"GOOME_ROLE_CHECKBOX", GOOME_ROLE_CHECKBOX},
+    {"GOOME_ROLE_RADIO", GOOME_ROLE_RADIO},
+    {"GOOME_ROLE_SLIDER", GOOME_ROLE_SLIDER},
+    {"GOOME_ROLE_TEXT", GOOME_ROLE_TEXT},
+    {"GOOME_ROLE_INPUT", GOOME_ROLE_INPUT},
+    {"GOOME_ROLE_COMBO", GOOME_ROLE_COMBO},
+    {"GOOME_ROLE_LIST", GOOME_ROLE_LIST},
+    {"GOOME_ROLE_ITEM", GOOME_ROLE_ITEM},
+    {"GOOME_ROLE_TAB", GOOME_ROLE_TAB},
+    {"GOOME_ROLE_MENU", GOOME_ROLE_MENU},
+    {"GOOME_ROLE_MENUITEM", GOOME_ROLE_MENUITEM},
+    {"GOOME_ROLE_TABLE", GOOME_ROLE_TABLE},
+    {"GOOME_ROLE_TREE", GOOME_ROLE_TREE},
+    {"GOOME_ROLE_PROGRESS", GOOME_ROLE_PROGRESS},
+    {"GOOME_ROLE_IMAGE", GOOME_ROLE_IMAGE},
+    {"GOOME_ROLE_GROUP", GOOME_ROLE_GROUP},
+    {"GOOME_ROLE_DIALOG", GOOME_ROLE_DIALOG},
+    {"GOOME_A11Y_FOCUSED", GOOME_A11Y_FOCUSED},
+    {"GOOME_A11Y_CHECKED", GOOME_A11Y_CHECKED},
+    {"GOOME_A11Y_DISABLED", GOOME_A11Y_DISABLED},
+    {"GOOME_A11Y_EXPANDED", GOOME_A11Y_EXPANDED},
+    {"GOOME_A11Y_SELECTED", GOOME_A11Y_SELECTED},
+    {"GOOME_DIR_AUTO", GOOME_DIR_AUTO},
+    {"GOOME_DIR_LTR", GOOME_DIR_LTR},
+    {"GOOME_DIR_RTL", GOOME_DIR_RTL}
 };
 
 int ref_const_count(void)
@@ -574,4 +611,171 @@ uint32_t ref_style(void)
     goome_bitmap_free(&bm);
     goome_close(g);
     return h;
+}
+
+typedef struct {
+    goome *g;
+    goome_ui *u;
+    int on, dropped;
+    double box, sp, last;
+    uint32_t col, hash;
+} rf_am;
+
+static void rf_am_frame(rf_am *k)
+{
+    goome_event ev;
+    while (goome_poll(k->g, &ev, 0) > 0) goome_ui_feed(k->u, &ev);
+    goome_canvas *c = goome_ui_begin(k->u, 0);
+    if (!c) return;
+    goome_canvas *r = goome_ui_canvas(k->u);
+    k->box = goome_ui_anim(k->u, "box", k->on ? 200 : 10, 160, GOOME_EASE_OUT);
+    k->sp = goome_ui_anim(k->u, "spring", k->on ? 1 : 0, 320, GOOME_EASE_SPRING);
+    k->col = goome_ui_anim_color(k->u, "col", k->on ? 0xFF20D060u : 0x00000000u, 200, GOOME_EASE_LINEAR);
+    if (!k->dropped) k->last = goome_ui_anim(k->u, "gone", k->on ? 5 : 0, 100, GOOME_EASE_LINEAR);
+    if (r) {
+        goome_draw_rect(r, k->box, 20, 60, 40, 0xFFE0A030u);
+        goome_draw_rrect(r, 20 + k->sp * 180, 90, 50, 30, goome_radius(15), 0xFF4FB3F7u);
+        goome_draw_rect(r, 20, 140, 260, 40, k->col);
+    }
+    goome_ui_end(k->u);
+    k->hash = rf_fnv(c->px, c->w, c->h, c->stride);
+}
+
+int ref_anim(uint32_t *out)
+{
+    int err;
+    rf_am k;
+    memset(&k, 0, sizeof(k));
+    k.g = goome_open(&(goome_opts){.backend = GOOME_TEST, .mode = GOOME_MODE_WINDOW, .width = 300, .height = 200, .test_script = "end 100000"}, &err);
+    if (!k.g) return -1;
+    k.u = goome_ui_new(k.g);
+    rf_am_frame(&k);
+    rf_am_frame(&k);
+    k.on = 1;
+    for (int frames = 0; frames < 60; frames++) {
+        rf_am_frame(&k);
+        if (frames == 1) out[0] = k.hash;
+        if (frames == 4) out[1] = k.hash;
+        if (frames == 8) out[2] = k.hash;
+    }
+    out[3] = k.hash;
+    int done = k.box == 200 && k.sp == 1 && k.col == 0xFF20D060u && k.last == 5;
+    goome_ui_free(k.u);
+    goome_close(k.g);
+    return done;
+}
+
+static uint32_t rf_txt(goome_font *f, double size, const char *s, uint32_t argb, int dir, int w, int h)
+{
+    static uint32_t px[400 * 120];
+    goome_canvas c;
+    memset(&c, 0, sizeof(c));
+    memset(px, 0, sizeof(px));
+    c.px = px, c.w = w, c.h = h, c.stride = 400, c.scale = 1, c.kx1 = w, c.ky1 = h;
+    goome_text_dir(dir);
+    goome_text(&c, f, size, 4, 4, s, argb);
+    goome_text_dir(GOOME_DIR_AUTO);
+    return rf_fnv(px, 400, 120, 400);
+}
+
+int ref_emoji(const unsigned char *colr, size_t ncolr, const unsigned char *cbdt, size_t ncbdt, const unsigned char *sbix, size_t nsbix,
+              const unsigned char *sub, size_t nsub, uint32_t *out)
+{
+    goome_font *f = goome_font_load_mem(colr, ncolr, 0), *cb = goome_font_load_mem(cbdt, ncbdt, 0);
+    goome_font *sb = goome_font_load_mem(sbix, nsbix, 0), *d = goome_font_load_mem(sub, nsub, 0);
+    int ok = f && cb && sb && d;
+    if (ok) {
+        out[0] = rf_txt(f, 30, "ab \xF0\x9F\x98\x80 \xF0\x9F\x98\x80\xF0\x9F\x8F\xBB \xF0\x9F\x98\x80\xE2\x80\x8D\xF0\x9F\x98\x80 \xE2\x9D\xA4 \xE2\x9D\xA4\xEF\xB8\x8F", 0xFF2040A0, 0, 400, 60);
+        static uint32_t px[400 * 120];
+        goome_canvas c;
+        memset(&c, 0, sizeof(c));
+        memset(px, 0, sizeof(px));
+        c.px = px, c.w = 400, c.h = 120, c.stride = 400, c.scale = 1;
+        goome_text(&c, cb, 16, 4, 4, "\xF0\x9F\x90\xB1", 0xFFFFFFFF);
+        goome_text(&c, cb, 64, 30, 4, "\xF0\x9F\x90\xB1", 0xFFFFFFFF);
+        goome_text(&c, sb, 40, 120, 4, "\xF0\x9F\x90\xB1\xF0\x9F\x90\xB1", 0x80FFFFFF);
+        out[1] = rf_fnv(px, 400, 120, 400);
+        goome_font_fallback(d, f);
+        out[2] = rf_txt(d, 20, "goome! \xF0\x9F\x98\x80 Hi", 0xFFFFFFFF, 0, 400, 40);
+        out[3] = rf_txt(f, 24, "ab \xD7\x90\xD7\x91\xD7\x92 (12) c", 0xFFFFFFFF, 0, 400, 40);
+        out[4] = rf_txt(f, 24, "ab \xD7\x90\xD7\x91\xD7\x92 (12) c", 0xFFFFFFFF, GOOME_DIR_RTL, 400, 40);
+        out[5] = rf_txt(f, 30, "\xD8\xA8\xD9\x84\xD8\xA7\xD9\x85 \xD8\xA8\xD8\xA8\xD8\xA8 \xD9\x84\xD9\x85 \xD8\xA8\xD9\x8E\xD8\xA8", 0xFFFFFFFF, 0, 400, 50);
+    }
+    goome_font_free(d);
+    goome_font_free(sb);
+    goome_font_free(cb);
+    goome_font_free(f);
+    return ok;
+}
+
+typedef struct {
+    goome *g;
+    goome_ui *u;
+    char in[64], ed[96];
+    uint32_t hash;
+} rf_im;
+
+static void rf_im_frame(rf_im *k, int focus)
+{
+    goome_event ev;
+    while (goome_poll(k->g, &ev, 0) > 0) goome_ui_feed(k->u, &ev);
+    goome_canvas *c = goome_ui_begin(k->u, 0);
+    if (!c) return;
+    if (focus == 1) goome_ui_set_focus(k->u);
+    goome_ui_input_ex(k->u, "in", k->in, sizeof(k->in), GOOME_INPUT_NO_SELECT_ON_FOCUS, NULL);
+    if (focus == 2) goome_ui_set_focus(k->u);
+    goome_ui_text_edit(k->u, "ed", k->ed, sizeof(k->ed), 80, 0);
+    goome_ui_end(k->u);
+    k->hash = rf_fnv(c->px, c->w, c->h, c->stride);
+}
+
+static int rf_im_open(rf_im *k, const char *in, const char *ed, int focus)
+{
+    int err;
+    memset(k, 0, sizeof(*k));
+    k->g = goome_open(&(goome_opts){.backend = GOOME_TEST, .mode = GOOME_MODE_WINDOW, .width = 300, .height = 200, .test_script = "end 100000"}, &err);
+    if (!k->g) return 0;
+    k->u = goome_ui_new(k->g);
+    if (!k->u) return goome_close(k->g), 0;
+    goome_theme *t = goome_ui_theme(k->u);
+    t->font = NULL, t->font_size = 14, t->anim_ms = 0;
+    goome_ui_cfg(k->u)->blink_ms = 0;
+    snprintf(k->in, sizeof(k->in), "%s", in);
+    snprintf(k->ed, sizeof(k->ed), "%s", ed);
+    rf_im_frame(k, focus);
+    rf_im_frame(k, 0);
+    return 1;
+}
+
+static void rf_im_push(rf_im *k, int type, const char *s, int cur)
+{
+    goome_event e;
+    memset(&e, 0, sizeof(e));
+    e.type = type, e.id = cur;
+    snprintf(e.msg, sizeof(e.msg), "%s", s);
+    goome_push(k->g, &e);
+    rf_im_frame(k, 0);
+}
+
+int ref_ime(uint32_t *out, char *in, int cap)
+{
+    rf_im k;
+    if (!rf_im_open(&k, "ab", "", 1)) return -1;
+    out[0] = k.hash;
+    rf_im_push(&k, GOOME_PREEDIT, "xyz", 1);
+    out[1] = k.hash;
+    rf_im_push(&k, GOOME_PREEDIT, "xyz", 3);
+    out[2] = k.hash;
+    rf_im_push(&k, GOOME_PREEDIT, "", 0);
+    rf_im_push(&k, GOOME_TEXT, "\xE6\x97\xA5\xE6\x9C\xAC", 0);
+    snprintf(in, (size_t)cap, "%s", k.in);
+    goome_ui_free(k.u);
+    goome_close(k.g);
+    if (!rf_im_open(&k, "", "line", 2)) return -1;
+    out[3] = k.hash;
+    rf_im_push(&k, GOOME_PREEDIT, "kana", 2);
+    out[4] = k.hash;
+    goome_ui_free(k.u);
+    goome_close(k.g);
+    return 0;
 }

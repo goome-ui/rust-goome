@@ -51,3 +51,52 @@ pub fn frame() -> String {
 pub fn style() -> u32 {
     unsafe { ref_style() }
 }
+
+extern "C" {
+    fn ref_anim(out: *mut u32) -> c_int;
+    fn ref_emoji(
+        colr: *const u8,
+        ncolr: usize,
+        cbdt: *const u8,
+        ncbdt: usize,
+        sbix: *const u8,
+        nsbix: usize,
+        sub: *const u8,
+        nsub: usize,
+        out: *mut u32,
+    ) -> c_int;
+    fn ref_ime(out: *mut u32, input: *mut c_char, cap: c_int) -> c_int;
+}
+
+pub fn anim() -> ([u32; 4], bool) {
+    let mut h = [0u32; 4];
+    let done = unsafe { ref_anim(h.as_mut_ptr()) };
+    assert!(done >= 0);
+    (h, done == 1)
+}
+
+pub fn emoji(colr: &[u8], cbdt: &[u8], sbix: &[u8], sub: &[u8]) -> [u32; 6] {
+    let mut h = [0u32; 6];
+    let ok = unsafe {
+        ref_emoji(
+            colr.as_ptr(),
+            colr.len(),
+            cbdt.as_ptr(),
+            cbdt.len(),
+            sbix.as_ptr(),
+            sbix.len(),
+            sub.as_ptr(),
+            sub.len(),
+            h.as_mut_ptr(),
+        )
+    };
+    assert_eq!(ok, 1);
+    h
+}
+
+pub fn ime() -> ([u32; 5], String) {
+    let mut h = [0u32; 5];
+    let mut buf = vec![0 as c_char; 64];
+    assert_eq!(unsafe { ref_ime(h.as_mut_ptr(), buf.as_mut_ptr(), buf.len() as c_int) }, 0);
+    (h, unsafe { CStr::from_ptr(buf.as_ptr()).to_string_lossy().into_owned() })
+}

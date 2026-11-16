@@ -296,6 +296,25 @@ pub struct goome_ui_config {
     pub mask: *const c_char,
 }
 
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct goome_a11y_node {
+    pub role: c_int,
+    pub parent: c_int,
+    pub states: c_int,
+    pub x: c_double,
+    pub y: c_double,
+    pub w: c_double,
+    pub h: c_double,
+    pub label: [c_char; 96],
+    pub value: [c_char; 64],
+    pub id: u32,
+    pub num: c_double,
+    pub min: c_double,
+    pub max: c_double,
+    pub caret: c_int,
+}
+
 pub const GOOME_AUTO: c_int = 0;
 pub const GOOME_WAYLAND: c_int = 1;
 pub const GOOME_GNOME: c_int = 2;
@@ -346,6 +365,8 @@ pub const GOOME_QUIT: c_int = 9;
 pub const GOOME_CLOSE: c_int = 10;
 pub const GOOME_FOCUS: c_int = 11;
 pub const GOOME_DROP: c_int = 12;
+pub const GOOME_TEXT: c_int = 13;
+pub const GOOME_PREEDIT: c_int = 14;
 pub const GOOME_CURSOR_ARROW: c_int = 0;
 pub const GOOME_CURSOR_IBEAM: c_int = 1;
 pub const GOOME_CURSOR_HAND: c_int = 2;
@@ -518,6 +539,9 @@ pub const GOOME_EASE_OUT: c_int = 2;
 pub const GOOME_EASE_IN_OUT: c_int = 3;
 pub const GOOME_EASE_BACK: c_int = 4;
 pub const GOOME_EASE_CUSTOM: c_int = 5;
+pub const GOOME_EASE_IN: c_int = 6;
+pub const GOOME_EASE_SPRING: c_int = 7;
+pub const GOOME_EASE_BOUNCE: c_int = 8;
 pub const GOOME_SKIN_BUTTON: c_int = 0;
 pub const GOOME_SKIN_PANEL: c_int = 1;
 pub const GOOME_SKIN_INPUT: c_int = 2;
@@ -572,6 +596,34 @@ pub const GOOME_CUR_CUSTOM_X: c_int = 9;
 pub const GOOME_CUR_CUSTOM_Y: c_int = 10;
 pub const GOOME_CUR_CUSTOM_XY: c_int = 11;
 pub const GOOME_CUR_COUNT: c_int = 12;
+pub const GOOME_ROLE_NONE: c_int = 0;
+pub const GOOME_ROLE_WINDOW: c_int = 1;
+pub const GOOME_ROLE_BUTTON: c_int = 2;
+pub const GOOME_ROLE_CHECKBOX: c_int = 3;
+pub const GOOME_ROLE_RADIO: c_int = 4;
+pub const GOOME_ROLE_SLIDER: c_int = 5;
+pub const GOOME_ROLE_TEXT: c_int = 6;
+pub const GOOME_ROLE_INPUT: c_int = 7;
+pub const GOOME_ROLE_COMBO: c_int = 8;
+pub const GOOME_ROLE_LIST: c_int = 9;
+pub const GOOME_ROLE_ITEM: c_int = 10;
+pub const GOOME_ROLE_TAB: c_int = 11;
+pub const GOOME_ROLE_MENU: c_int = 12;
+pub const GOOME_ROLE_MENUITEM: c_int = 13;
+pub const GOOME_ROLE_TABLE: c_int = 14;
+pub const GOOME_ROLE_TREE: c_int = 15;
+pub const GOOME_ROLE_PROGRESS: c_int = 16;
+pub const GOOME_ROLE_IMAGE: c_int = 17;
+pub const GOOME_ROLE_GROUP: c_int = 18;
+pub const GOOME_ROLE_DIALOG: c_int = 19;
+pub const GOOME_A11Y_FOCUSED: c_int = 1;
+pub const GOOME_A11Y_CHECKED: c_int = 2;
+pub const GOOME_A11Y_DISABLED: c_int = 4;
+pub const GOOME_A11Y_EXPANDED: c_int = 8;
+pub const GOOME_A11Y_SELECTED: c_int = 16;
+pub const GOOME_DIR_AUTO: c_int = 0;
+pub const GOOME_DIR_LTR: c_int = 1;
+pub const GOOME_DIR_RTL: c_int = 2;
 
 extern "C" {
     pub fn goome_open(o: *const goome_opts, err: *mut c_int) -> *mut goome;
@@ -611,6 +663,9 @@ extern "C" {
     pub fn goome_clipboard_set(g: *mut goome, utf8: *const c_char) -> c_int;
     pub fn goome_clipboard_get(g: *mut goome, buf: *mut c_char, cap: c_int) -> c_int;
     pub fn goome_drop_path(g: *mut goome) -> *const c_char;
+    pub fn goome_event_text(g: *mut goome) -> *const c_char;
+    pub fn goome_preedit_cursor(g: *mut goome) -> c_int;
+    pub fn goome_text_input(g: *mut goome, on: c_int, caret: *const goome_rect) -> c_int;
     pub fn goome_push(g: *mut goome, ev: *const goome_event) -> c_int;
     pub fn goome_resize(g: *mut goome, w: c_int, h: c_int, scale: c_double) -> c_int;
     pub fn goome_frame(g: *mut goome, out: *mut goome_image) -> c_int;
@@ -681,6 +736,8 @@ extern "C" {
     pub fn goome_text(c: *mut goome_canvas, f: *mut goome_font, size: c_double, x: c_double, y: c_double, utf8: *const c_char, argb: u32) -> c_double;
     pub fn goome_text_measure(f: *mut goome_font, size: c_double, utf8: *const c_char, height: *mut c_double) -> c_double;
     pub fn goome_text_line_height(f: *mut goome_font, size: c_double) -> c_double;
+    pub fn goome_font_fallback(f: *mut goome_font, fallback: *mut goome_font);
+    pub fn goome_text_dir(dir: c_int);
     pub fn goome_ui_new(g: *mut goome) -> *mut goome_ui;
     pub fn goome_ui_free(u: *mut goome_ui);
     pub fn goome_ui_theme(u: *mut goome_ui) -> *mut goome_theme;
@@ -804,4 +861,11 @@ extern "C" {
     pub fn goome_ui_cfg(u: *mut goome_ui) -> *mut goome_ui_config;
     pub fn goome_ui_config_default(c: *mut goome_ui_config);
     pub fn goome_ui_bind(u: *mut goome_ui, act: c_int, combos: *const c_char) -> c_int;
+    pub fn goome_ease(ease: c_int, t: c_double) -> c_double;
+    pub fn goome_ui_anim(u: *mut goome_ui, id: *const c_char, target: c_double, ms: c_double, ease: c_int) -> c_double;
+    pub fn goome_ui_anim_color(u: *mut goome_ui, id: *const c_char, target: u32, ms: c_double, ease: c_int) -> u32;
+    pub fn goome_ui_a11y(u: *mut goome_ui, on: c_int);
+    pub fn goome_ui_a11y_role(u: *mut goome_ui, role: c_int, label: *const c_char);
+    pub fn goome_ui_a11y_value(u: *mut goome_ui, value: *const c_char);
+    pub fn goome_a11y_tree(u: *mut goome_ui, out: *mut goome_a11y_node, max: c_int) -> c_int;
 }

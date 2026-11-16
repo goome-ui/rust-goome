@@ -26,6 +26,7 @@ fn sys_layout() -> Vec<(String, usize, usize)> {
     s!(v, goome_ui_item, x y w h hovered pressed held released clicked double_clicked right_clicked focused mx my dx dy drag_x drag_y key);
     s!(v, goome_combo, key mods);
     s!(v, goome_ui_config, tip_delay_ms dbl_click_ms dbl_click_px drag_px repeat_delay_ms repeat_ms blink_ms menu_delay_ms toast_ms scroll_lines raise_on_click esc_closes tab_nav focus_on_mouse cursor keys ease ease_user mask);
+    s!(v, goome_a11y_node, role parent states x y w h label value id num min max caret);
     v
 }
 
@@ -128,6 +129,8 @@ fn mine_consts() -> Vec<(&'static str, i32)> {
         ("GOOME_CLOSE", goome::CLOSE),
         ("GOOME_FOCUS", goome::FOCUS),
         ("GOOME_DROP", goome::DROP),
+        ("GOOME_TEXT", goome::TEXT),
+        ("GOOME_PREEDIT", goome::PREEDIT),
         ("GOOME_CURSOR_ARROW", goome::CURSOR_ARROW),
         ("GOOME_CURSOR_IBEAM", goome::CURSOR_IBEAM),
         ("GOOME_CURSOR_HAND", goome::CURSOR_HAND),
@@ -300,6 +303,9 @@ fn mine_consts() -> Vec<(&'static str, i32)> {
         ("GOOME_EASE_IN_OUT", goome::EASE_IN_OUT),
         ("GOOME_EASE_BACK", goome::EASE_BACK),
         ("GOOME_EASE_CUSTOM", goome::EASE_CUSTOM),
+        ("GOOME_EASE_IN", goome::EASE_IN),
+        ("GOOME_EASE_SPRING", goome::EASE_SPRING),
+        ("GOOME_EASE_BOUNCE", goome::EASE_BOUNCE),
         ("GOOME_SKIN_BUTTON", goome::SKIN_BUTTON),
         ("GOOME_SKIN_PANEL", goome::SKIN_PANEL),
         ("GOOME_SKIN_INPUT", goome::SKIN_INPUT),
@@ -354,6 +360,34 @@ fn mine_consts() -> Vec<(&'static str, i32)> {
         ("GOOME_CUR_CUSTOM_Y", goome::CUR_CUSTOM_Y),
         ("GOOME_CUR_CUSTOM_XY", goome::CUR_CUSTOM_XY),
         ("GOOME_CUR_COUNT", goome::CUR_COUNT),
+        ("GOOME_ROLE_NONE", goome::ROLE_NONE),
+        ("GOOME_ROLE_WINDOW", goome::ROLE_WINDOW),
+        ("GOOME_ROLE_BUTTON", goome::ROLE_BUTTON),
+        ("GOOME_ROLE_CHECKBOX", goome::ROLE_CHECKBOX),
+        ("GOOME_ROLE_RADIO", goome::ROLE_RADIO),
+        ("GOOME_ROLE_SLIDER", goome::ROLE_SLIDER),
+        ("GOOME_ROLE_TEXT", goome::ROLE_TEXT),
+        ("GOOME_ROLE_INPUT", goome::ROLE_INPUT),
+        ("GOOME_ROLE_COMBO", goome::ROLE_COMBO),
+        ("GOOME_ROLE_LIST", goome::ROLE_LIST),
+        ("GOOME_ROLE_ITEM", goome::ROLE_ITEM),
+        ("GOOME_ROLE_TAB", goome::ROLE_TAB),
+        ("GOOME_ROLE_MENU", goome::ROLE_MENU),
+        ("GOOME_ROLE_MENUITEM", goome::ROLE_MENUITEM),
+        ("GOOME_ROLE_TABLE", goome::ROLE_TABLE),
+        ("GOOME_ROLE_TREE", goome::ROLE_TREE),
+        ("GOOME_ROLE_PROGRESS", goome::ROLE_PROGRESS),
+        ("GOOME_ROLE_IMAGE", goome::ROLE_IMAGE),
+        ("GOOME_ROLE_GROUP", goome::ROLE_GROUP),
+        ("GOOME_ROLE_DIALOG", goome::ROLE_DIALOG),
+        ("GOOME_A11Y_FOCUSED", goome::A11Y_FOCUSED),
+        ("GOOME_A11Y_CHECKED", goome::A11Y_CHECKED),
+        ("GOOME_A11Y_DISABLED", goome::A11Y_DISABLED),
+        ("GOOME_A11Y_EXPANDED", goome::A11Y_EXPANDED),
+        ("GOOME_A11Y_SELECTED", goome::A11Y_SELECTED),
+        ("GOOME_DIR_AUTO", goome::DIR_AUTO),
+        ("GOOME_DIR_LTR", goome::DIR_LTR),
+        ("GOOME_DIR_RTL", goome::DIR_RTL),
     ]
 }
 
