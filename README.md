@@ -101,7 +101,7 @@ For mods inside a game the other bindings have more. <a href="https://github.com
 <br>
 
 <p align="center">
-It isnt on crates.io yet, so take it straight from git:
+It isnt on crates.io, so take it straight from git:
 </p>
 
 ```toml
