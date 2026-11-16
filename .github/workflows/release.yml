@@ -1,0 +1,36 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  upload:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: crates
+          path: out/
+      - name: check the crates
+        run: |
+          v=${TAG#v}
+          grep -q "^version = \"$v\"" Cargo.toml || { echo "Cargo.toml isnt $v"; exit 1; }
+          test -s "out/goome-sys-$v.crate" || { echo "no goome-sys-$v.crate"; ls out; exit 1; }
+          test -s "out/goome-$v.crate" || { echo "no goome-$v.crate"; ls out; exit 1; }
+      - name: upload
+        run: |
+          v=${TAG#v}
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --verify-tag --title "goome ${TAG#v}" --notes "goome ${TAG#v}"
+          gh release upload "$TAG" "out/goome-sys-$v.crate" "out/goome-$v.crate" --clobber

@@ -1,0 +1,20 @@
+[package]
+name = "goome-sys"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Raw bindings to goome, the one file C overlay and ui library. Builds goome.h with the cc crate"
+documentation = "https://docs.rs/goome-sys"
+readme = "README.md"
+keywords = ["overlay", "gui", "ffi", "immediate-mode", "goome"]
+categories = ["external-ffi-bindings", "gui"]
+links = "goome"
+build = "build.rs"
+include = ["src/**", "native/goome.h", "native/goome_lib.c", "native/VERSION", "build.rs", "README.md", "LICENSE"]
+
+[build-dependencies]
+cc = "1.1"

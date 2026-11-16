@@ -1,0 +1,12 @@
+[workspace]
+members = ["goome-sys", "goome", "goome-ref"]
+resolver = "2"
+
+[workspace.package]
+version = "0.5.0"
+edition = "2021"
+rust-version = "1.77"
+license = "GPL-3.0-only"
+authors = ["sevvy-wevvy"]
+repository = "https://github.com/goome-ui/rust-goome"
+homepage = "https://goome-ui.github.io/docs/"

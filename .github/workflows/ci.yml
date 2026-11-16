@@ -1,0 +1,96 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+  HELLO: 'screen 800x600 1; 2 click 100,100; 4 key hi; end 8'
+  APP: 'screen 1x1 1; 3 resize 700x500; 5 close; end 10'
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: tests
+        shell: bash
+        run: cargo test --workspace
+      - name: hello on the test backend
+        shell: bash
+        run: GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example hello
+      - name: app on the test backend
+        shell: bash
+        run: GOOME_BACKEND=test GOOME_TEST_SCRIPT="$APP" cargo run --example app
+      - name: ui demo on the test backend
+        shell: bash
+        run: GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example ui_demo
+      - name: anim and text on the test backend
+        shell: bash
+        run: |
+          GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example anim
+          GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example text
+      - name: a11y tree
+        shell: bash
+        run: cargo run --example a11y | tee "$RUNNER_TEMP/tree.txt" && grep -q 'button "Save"' "$RUNNER_TEMP/tree.txt"
+      - name: offscreen
+        shell: bash
+        run: |
+          cargo run --example offscreen -- "$RUNNER_TEMP/offscreen.png"
+          test -s "$RUNNER_TEMP/offscreen.png"
+      - name: release build
+        shell: bash
+        run: cargo build --release --examples
+
+  windows-gnu:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+      - name: tests with mingw
+        shell: bash
+        run: cargo test --workspace --target x86_64-pc-windows-gnu
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.77
+      - name: tests on 1.77
+        run: |
+          rm Cargo.lock
+          cargo test --workspace
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: fmt
+        run: cargo fmt --all --check
+      - name: crates are ready to publish
+        run: |
+          cargo package --workspace --exclude goome-ref
+          cargo package -p goome-sys --list | tee files.txt
+          grep -qx native/goome.h files.txt
+          grep -qx native/goome_lib.c files.txt
+          grep -qx build.rs files.txt
+      - name: docs
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p goome -p goome-sys
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crates
+          path: target/package/*.crate
