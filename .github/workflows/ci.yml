@@ -34,6 +34,14 @@ jobs:
       - name: ui demo on the test backend
         shell: bash
         run: GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example ui_demo
+      - name: anim and text on the test backend
+        shell: bash
+        run: |
+          GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example anim
+          GOOME_BACKEND=test GOOME_TEST_SCRIPT="$HELLO" cargo run --example text
+      - name: a11y tree
+        shell: bash
+        run: cargo run --example a11y | tee "$RUNNER_TEMP/tree.txt" && grep -q 'button "Save"' "$RUNNER_TEMP/tree.txt"
       - name: offscreen
         shell: bash
         run: |

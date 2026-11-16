@@ -274,6 +274,35 @@ Want your own loop? <code>Goome::app(title, w, h)</code> is the plain window, th
 </details>
 
 <details>
+<summary align="center"><b>🎞️ Animations 🎞️</b></summary>
+
+<br>
+
+<p align="center">
+<code>ui.anim(id, target, ms, ease)</code> gives you a number that slides toward <code>target</code>. Call it every frame with whatever the target is right now, goome keeps the state per id and keeps redrawing until its there (<code>ui.animating()</code>). <code>ui.anim_color</code> does the same for colors.<br>
+The eases are <code>EASE_SMOOTH</code>, <code>EASE_LINEAR</code>, <code>EASE_IN</code>, <code>EASE_OUT</code>, <code>EASE_IN_OUT</code>, <code>EASE_BACK</code>, <code>EASE_SPRING</code> and <code>EASE_BOUNCE</code>, and <code>goome::ease(kind, t)</code> gives you the raw curve.
+</p>
+
+```rust
+let x = ui.anim("drawer", if open { 1.0 } else { 0.0 }, 300.0, goome::EASE_SPRING);
+let tint = ui.anim_color("drawer tint", if open { 0xFF6FDC5F } else { 0xFF404858 }, 200.0, goome::EASE_LINEAR);
+```
+</details>
+
+<details>
+<summary align="center"><b>🌍 Emoji, RTL, IME And Screen Readers 🌍</b></summary>
+
+<br>
+
+<p align="center">
+<code>Font::system(None)</code> already pulls in the system emoji font. For your own fonts, <code>font.fallback(&amp;other)</code> adds one to try for missing chars. The font keeps a clone of it, so dropping yours is fine.<br>
+Hebrew and Arabic just work. <code>goome::text_dir(goome::DIR_RTL)</code> forces the direction for all text, <code>DIR_AUTO</code> (the default) goes by the first strong letter of each line.<br> <br>
+Inputs and text edits turn the IME on by themselves while focused and draw what youre composing at the caret. If you do your own text box, <code>g.text_input(true, Some(caret))</code> starts it, then you get <code>TEXT</code> events with the finished text in <code>ev.msg</code> (the whole thing, not cut at 63 bytes) and <code>PREEDIT</code> ones while composing, with the caret in <code>ev.id</code>. From an engine you push them with <code>Event::text("日本")</code> and <code>Event::preedit("にほ", 3)</code>.<br> <br>
+The ui kit builds an accessibility tree every frame and goome hands it to the screen reader in window mode. Its off in overlay and offscreen mode, <code>ui.a11y(true)</code> turns it on. <code>ui.a11y_tree()</code> gives you a <code>Vec&lt;A11yNode&gt;</code> with role, label, value, box, <code>parent</code> as an index and <code>focused()</code> / <code>checked()</code> and friends, so an engine can bridge it to its own. For a <code>ui.custom</code> widget call <code>ui.a11y_role(goome::ROLE_BUTTON, "Knob")</code> and <code>ui.a11y_value("11")</code> right before it.
+</p>
+</details>
+
+<details>
 <summary align="center"><b>📚 The API 📚</b></summary>
 
 <br>
@@ -309,6 +338,9 @@ goome itself isnt thread safe, so the crate keeps it on one thread: the types ar
 - `examples/ui_demo.rs` - the ui kit demo with tabs, images, a theme editor and a stats window
 - `examples/app.rs` - a notes app in a normal window with menus, a sidebar in a split pane, a multiline editor and dialogs
 - `examples/offscreen.rs` - draws the ui with no window and saves it as a PNG
+- `examples/anim.rs` - a ball that slides over with whatever ease you pick, plus the curve
+- `examples/text.rs` - emoji, hebrew and arabic with a switch for the text direction. Give it a font file to add as a fallback
+- `examples/a11y.rs` - prints the accessibility tree of a small settings window
 
 ```sh
 cargo run --example ui_demo
