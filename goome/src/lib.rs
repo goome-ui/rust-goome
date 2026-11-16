@@ -9,10 +9,10 @@ mod ui;
 
 pub use app::{App, AppFrame};
 pub use consts::*;
-pub use draw::{builtin_font_count, builtin_measure, set_builtin_font, Bitmap, Canvas, Draw, Font, Frame, Radii, UiCanvas};
+pub use draw::{builtin_font_count, builtin_measure, set_builtin_font, text_dir, Bitmap, Canvas, Draw, Font, Frame, Radii, UiCanvas};
 #[doc(hidden)]
 pub use ui::mirror_layout;
-pub use ui::{Config, Item, Scope, Skin, Style, Theme, Ui, UiFrame, WindowState};
+pub use ui::{ease, A11yNode, Config, Item, Scope, Skin, Style, Theme, Ui, UiFrame, WindowState};
 
 use std::ffi::{c_char, c_int, CStr, CString};
 use std::fmt;
@@ -309,6 +309,23 @@ impl Event {
             key,
             mods,
             text: text.to_string(),
+            ..Event::default()
+        }
+    }
+
+    pub fn text(text: &str) -> Event {
+        Event {
+            kind: TEXT,
+            msg: text.to_string(),
+            ..Event::default()
+        }
+    }
+
+    pub fn preedit(text: &str, cursor: usize) -> Event {
+        Event {
+            kind: PREEDIT,
+            msg: text.to_string(),
+            id: cursor.min(i32::MAX as usize) as i32,
             ..Event::default()
         }
     }
@@ -680,7 +697,11 @@ impl Goome {
     pub fn poll(&self, timeout_ms: i32) -> Option<Event> {
         let mut e: sys::goome_event = unsafe { std::mem::zeroed() };
         if unsafe { sys::goome_poll(self.raw(), &mut e, timeout_ms) } > 0 {
-            Some(Event::from_raw(&e))
+            let mut ev = Event::from_raw(&e);
+            if ev.kind == TEXT || ev.kind == PREEDIT {
+                ev.msg = self.event_text();
+            }
+            Some(ev)
         } else {
             None
         }
@@ -784,6 +805,25 @@ impl Goome {
 
     pub fn drop_path(&self) -> Option<String> {
         unsafe { from_c(sys::goome_drop_path(self.raw())) }
+    }
+
+    pub fn event_text(&self) -> String {
+        unsafe { from_c(sys::goome_event_text(self.raw())).unwrap_or_default() }
+    }
+
+    pub fn preedit_cursor(&self) -> usize {
+        unsafe { sys::goome_preedit_cursor(self.raw()).max(0) as usize }
+    }
+
+    pub fn text_input(&self, on: bool, caret: Option<Rect>) -> Result<()> {
+        let r = caret.map(|r| sys::goome_rect {
+            x: r.x,
+            y: r.y,
+            w: r.w,
+            h: r.h,
+        });
+        let p = r.as_ref().map_or(ptr::null(), |r| r as *const sys::goome_rect);
+        self.fail(unsafe { sys::goome_text_input(self.raw(), on as c_int, p) })
     }
 
     pub fn push(&self, ev: &Event) -> Result<()> {

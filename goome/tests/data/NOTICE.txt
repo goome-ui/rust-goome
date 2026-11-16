@@ -1,0 +1,2 @@
+dejavu-sub.ttf is a tiny subset of DejaVu Sans (Bitstream Vera / DejaVu fonts license), only the glyphs for "goome! HiAVWTyé.@".
+colr.ttf, cbdt.ttf and sbix.ttf are tiny made up test fonts from c-goome (made by its tests/mkfonts.py). colr.ttf has COLR/CPAL emoji, hebrew, arabic forms, a ccmp ligature and a cmap 14 heart, cbdt.ttf and sbix.ttf hold one png cat.

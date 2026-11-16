@@ -1089,6 +1089,104 @@ impl Ui {
         }
         Ok(())
     }
+
+    pub fn anim(&mut self, id: &str, target: f64, ms: f64, ease: i32) -> f64 {
+        let t = cstr(id);
+        unsafe { sys::goome_ui_anim(self.h(), t.as_ptr(), target, ms, ease) }
+    }
+
+    pub fn anim_color(&mut self, id: &str, target: u32, ms: f64, ease: i32) -> u32 {
+        let t = cstr(id);
+        unsafe { sys::goome_ui_anim_color(self.h(), t.as_ptr(), target, ms, ease) }
+    }
+
+    pub fn a11y(&mut self, on: bool) {
+        unsafe { sys::goome_ui_a11y(self.h(), on as c_int) }
+    }
+
+    pub fn a11y_role(&mut self, role: i32, label: &str) {
+        let t = cstr(label);
+        unsafe { sys::goome_ui_a11y_role(self.h(), role, t.as_ptr()) }
+    }
+
+    pub fn a11y_value(&mut self, value: &str) {
+        let t = cstr(value);
+        unsafe { sys::goome_ui_a11y_value(self.h(), t.as_ptr()) }
+    }
+
+    pub fn a11y_tree(&self) -> Vec<A11yNode> {
+        let n = unsafe { sys::goome_a11y_tree(self.h(), ptr::null_mut(), 0) };
+        if n <= 0 {
+            return Vec::new();
+        }
+        let mut raw: Vec<sys::goome_a11y_node> = vec![unsafe { std::mem::zeroed() }; n as usize];
+        let got = unsafe { sys::goome_a11y_tree(self.h(), raw.as_mut_ptr(), n) }.clamp(0, n) as usize;
+        raw.truncate(got);
+        raw.iter().map(A11yNode::from_raw).collect()
+    }
+}
+
+pub fn ease(kind: i32, t: f64) -> f64 {
+    unsafe { sys::goome_ease(kind, t) }
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct A11yNode {
+    pub role: i32,
+    pub parent: Option<usize>,
+    pub states: i32,
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+    pub label: String,
+    pub value: String,
+    pub id: u32,
+    pub num: f64,
+    pub min: f64,
+    pub max: f64,
+    pub caret: i32,
+}
+
+impl A11yNode {
+    pub fn from_raw(n: &sys::goome_a11y_node) -> A11yNode {
+        A11yNode {
+            role: n.role,
+            parent: if n.parent < 0 { None } else { Some(n.parent as usize) },
+            states: n.states,
+            x: n.x,
+            y: n.y,
+            w: n.w,
+            h: n.h,
+            label: crate::from_chars(&n.label),
+            value: crate::from_chars(&n.value),
+            id: n.id,
+            num: n.num,
+            min: n.min,
+            max: n.max,
+            caret: n.caret,
+        }
+    }
+
+    pub fn focused(&self) -> bool {
+        self.states & crate::A11Y_FOCUSED != 0
+    }
+
+    pub fn checked(&self) -> bool {
+        self.states & crate::A11Y_CHECKED != 0
+    }
+
+    pub fn disabled(&self) -> bool {
+        self.states & crate::A11Y_DISABLED != 0
+    }
+
+    pub fn expanded(&self) -> bool {
+        self.states & crate::A11Y_EXPANDED != 0
+    }
+
+    pub fn selected(&self) -> bool {
+        self.states & crate::A11Y_SELECTED != 0
+    }
 }
 
 impl Deref for Ui {

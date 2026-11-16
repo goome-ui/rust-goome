@@ -1,4 +1,5 @@
 use crate::{check, claim, cstr, from_c, sys, Claim, Error, Goome, Rect, Result, EARG};
+use std::cell::RefCell;
 use std::ffi::c_int;
 use std::marker::PhantomData;
 use std::ptr::{self, NonNull};
@@ -165,6 +166,7 @@ pub(crate) struct FontInner {
     pub(crate) f: NonNull<sys::goome_font>,
     _keep: Option<Vec<u8>>,
     _claim: Claim,
+    fallbacks: RefCell<Vec<Font>>,
 }
 
 impl Drop for FontInner {
@@ -179,7 +181,12 @@ pub struct Font(pub(crate) Rc<FontInner>);
 impl Font {
     fn wrap(f: *mut sys::goome_font, keep: Option<Vec<u8>>, what: &str, c: Claim) -> Result<Font> {
         match NonNull::new(f) {
-            Some(f) => Ok(Font(Rc::new(FontInner { f, _keep: keep, _claim: c }))),
+            Some(f) => Ok(Font(Rc::new(FontInner {
+                f,
+                _keep: keep,
+                _claim: c,
+                fallbacks: RefCell::new(Vec::new()),
+            }))),
             None => Err(Error::new(crate::EARG, format!("cant load the font {}", what))),
         }
     }
@@ -220,9 +227,30 @@ impl Font {
         unsafe { sys::goome_text_line_height(self.raw(), size) }
     }
 
+    pub fn fallback(&self, other: &Font) {
+        if Rc::ptr_eq(&self.0, &other.0) {
+            return;
+        }
+        let mut list = self.0.fallbacks.borrow_mut();
+        if list.iter().any(|f| Rc::ptr_eq(&f.0, &other.0)) {
+            return;
+        }
+        unsafe { sys::goome_font_fallback(self.raw(), other.raw()) };
+        list.push(other.clone());
+    }
+
+    pub fn fallbacks(&self) -> Vec<Font> {
+        self.0.fallbacks.borrow().clone()
+    }
+
     pub fn raw(&self) -> *mut sys::goome_font {
         self.0.f.as_ptr()
     }
+}
+
+pub fn text_dir(dir: i32) {
+    let _c = claim().expect("goome is in use on another thread");
+    unsafe { sys::goome_text_dir(dir) }
 }
 
 pub fn builtin_measure(size: f64, text: &str) -> (f64, f64) {
