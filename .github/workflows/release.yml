@@ -34,3 +34,14 @@ jobs:
           v=${TAG#v}
           gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --verify-tag --title "goome ${TAG#v}" --notes "goome ${TAG#v}"
           gh release upload "$TAG" "out/goome-sys-$v.crate" "out/goome-$v.crate" --clobber
+
+  crates:
+    needs: upload
+    if: vars.CRATES_PUBLISH == 'yes'
+    runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo publish --workspace --exclude goome-ref

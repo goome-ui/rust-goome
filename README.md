@@ -101,12 +101,12 @@ For mods inside a game the other bindings have more. <a href="https://github.com
 <br>
 
 <p align="center">
-It isnt on crates.io, so take it straight from git:
+It's on <a href="https://crates.io/crates/goome">crates.io</a>:
 </p>
 
 ```toml
 [dependencies]
-goome = { git = "https://github.com/goome-ui/rust-goome" }
+goome = "0.5"
 ```
 
 <p align="center">
@@ -117,11 +117,11 @@ No system libraries get linked, goome loads what it needs (X11, Wayland, dbus, t
 <h3 align="center">📦 Other Versions</h3>
 
 <p align="center">
-Every release gets a tag, pin one like this:
+Every release gets a tag too, to take the git version instead:
 </p>
 
 ```toml
-goome = { git = "https://github.com/goome-ui/rust-goome", tag = "v0.5.0" }
+goome = { git = "https://github.com/goome-ui/rust-goome", tag = "v0.5.2" }
 ```
 
 <p align="center">
