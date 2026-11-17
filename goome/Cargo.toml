@@ -15,7 +15,7 @@ categories = ["gui", "graphics"]
 include = ["src/**", "examples/**", "README.md", "LICENSE"]
 
 [dependencies]
-goome-sys = { version = "0.5.2", path = "../goome-sys" }
+goome-sys = { version = "0.5.3", path = "../goome-sys" }
 
 [dev-dependencies]
 goome-ref = { path = "../goome-ref" }
