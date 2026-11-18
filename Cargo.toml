@@ -9,4 +9,4 @@ rust-version = "1.77"
 license = "GPL-3.0-only"
 authors = ["sevvy-wevvy"]
 repository = "https://github.com/goome-ui/rust-goome"
-homepage = "https://goome-ui.github.io/docs/"
+homepage = "https://goome.wtf/docs/"

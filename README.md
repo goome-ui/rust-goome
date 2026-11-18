@@ -9,17 +9,17 @@
 </p>
 
 <p align="center">
-  <img src="https://goome-ui.github.io/docs/assets/badges/rust-177.svg" alt="Rust 1.77+">
-  <img src="https://goome-ui.github.io/docs/assets/badges/crate-goome-sys.svg" alt="crate goome + goome-sys">
+  <img src="https://goome.wtf/badges/rust-177.svg" alt="Rust 1.77+">
+  <img src="https://goome.wtf/badges/crate-goome-sys.svg" alt="crate goome + goome-sys">
   <img src="https://img.shields.io/badge/Linux-X11%20%2B%20Wayland-1b1d22?style=flat-square&logo=linux&logoColor=white" alt="Linux">
   <img src="https://img.shields.io/badge/Windows-10%20%2F%2011-1b1d22?style=flat-square&logo=windows11&logoColor=white" alt="Windows">
   <img src="https://img.shields.io/badge/macOS-14%2B-1b1d22?style=flat-square&logo=apple&logoColor=white" alt="macOS">
-  <img src="https://goome-ui.github.io/docs/assets/badges/license-gpl-3.svg" alt="GPL-3.0">
+  <img src="https://goome.wtf/badges/license-gpl-3.svg" alt="GPL-3.0">
 </p>
 
 <p align="center">
-  <a href="https://goome-ui.github.io/docs/">Docs</a> &nbsp;·&nbsp;
-  <a href="https://goome-ui.github.io/docs/builder/">Builder</a> &nbsp;·&nbsp;
+  <a href="https://goome.wtf/docs/">Docs</a> &nbsp;·&nbsp;
+  <a href="https://goome.wtf/builder/">Builder</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/examples">Examples</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/c-goome">C</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/csharp-goome">C#</a> &nbsp;·&nbsp;
@@ -308,7 +308,7 @@ The ui kit builds an accessibility tree every frame and goome hands it to the sc
 <br>
 
 <p align="center">
-Everything from <a href="https://github.com/goome-ui/c-goome/blob/main/include/goome.h">goome.h</a> is in here. <a href="https://goome-ui.github.io/docs/">The docs</a> explain every part, the names are the C ones without <code>goome_</code>. Constants lose the <code>GOOME_</code> too (<code>goome::DOWN</code>, <code>goome::WIN_MOVE</code>). Anything that can fail returns <code>goome::Result</code> with the C error code in <code>.code</code>.
+Everything from <a href="https://github.com/goome-ui/c-goome/blob/main/include/goome.h">goome.h</a> is in here. <a href="https://goome.wtf/docs/">The docs</a> explain every part, the names are the C ones without <code>goome_</code>. Constants lose the <code>GOOME_</code> too (<code>goome::DOWN</code>, <code>goome::WIN_MOVE</code>). Anything that can fail returns <code>goome::Result</code> with the C error code in <code>.code</code>.
 </p>
 
 ```rust

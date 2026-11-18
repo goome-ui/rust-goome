@@ -21,6 +21,6 @@ while running {
 }
 ```
 
-The C library gets built from the vendored goome.h by [goome-sys](https://github.com/goome-ui/rust-goome/tree/main/goome-sys), so all you need is a C compiler. More in the [repo](https://github.com/goome-ui/rust-goome) and the [docs](https://goome-ui.github.io/docs/).
+The C library gets built from the vendored goome.h by [goome-sys](https://github.com/goome-ui/rust-goome/tree/main/goome-sys), so all you need is a C compiler. More in the [repo](https://github.com/goome-ui/rust-goome) and the [docs](https://goome.wtf/docs/).
 
 GPL-3.0, same as goome.
