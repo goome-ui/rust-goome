@@ -19,6 +19,7 @@ pub const WINDOW_ON_TOP: i32 = sys::GOOME_WINDOW_ON_TOP;
 pub const WINDOW_HIDDEN: i32 = sys::GOOME_WINDOW_HIDDEN;
 pub const WINDOW_CENTER: i32 = sys::GOOME_WINDOW_CENTER;
 pub const WINDOW_NO_TITLEBAR: i32 = sys::GOOME_WINDOW_NO_TITLEBAR;
+pub const WINDOW_NO_CONSOLE: i32 = sys::GOOME_WINDOW_NO_CONSOLE;
 pub const OK: i32 = sys::GOOME_OK;
 pub const ENOTSUP: i32 = sys::GOOME_ENOTSUP;
 pub const EDENIED: i32 = sys::GOOME_EDENIED;

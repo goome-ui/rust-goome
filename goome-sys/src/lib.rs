@@ -334,6 +334,7 @@ pub const GOOME_WINDOW_ON_TOP: c_int = 8;
 pub const GOOME_WINDOW_HIDDEN: c_int = 16;
 pub const GOOME_WINDOW_CENTER: c_int = 32;
 pub const GOOME_WINDOW_NO_TITLEBAR: c_int = 64;
+pub const GOOME_WINDOW_NO_CONSOLE: c_int = 128;
 pub const GOOME_OK: c_int = 0;
 pub const GOOME_ENOTSUP: c_int = -1;
 pub const GOOME_EDENIED: c_int = -2;
