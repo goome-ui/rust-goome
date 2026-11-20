@@ -3,7 +3,7 @@
 
 use core::ffi::{c_char, c_double, c_int, c_long, c_void};
 
-pub const GOOME_VERSION: &str = "0.5.3";
+pub const GOOME_VERSION: &str = "0.5.5";
 
 pub enum goome {}
 pub enum goome_font {}
