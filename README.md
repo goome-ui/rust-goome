@@ -121,7 +121,7 @@ Every release gets a tag too, to take the git version instead:
 </p>
 
 ```toml
-goome = { git = "https://github.com/goome-ui/rust-goome", tag = "v0.5.3" }
+goome = { git = "https://github.com/goome-ui/rust-goome", tag = "v0.5.5" }
 ```
 
 <p align="center">

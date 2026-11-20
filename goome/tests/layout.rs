@@ -98,6 +98,7 @@ fn mine_consts() -> Vec<(&'static str, i32)> {
         ("GOOME_WINDOW_HIDDEN", goome::WINDOW_HIDDEN),
         ("GOOME_WINDOW_CENTER", goome::WINDOW_CENTER),
         ("GOOME_WINDOW_NO_TITLEBAR", goome::WINDOW_NO_TITLEBAR),
+        ("GOOME_WINDOW_NO_CONSOLE", goome::WINDOW_NO_CONSOLE),
         ("GOOME_OK", goome::OK),
         ("GOOME_ENOTSUP", goome::ENOTSUP),
         ("GOOME_EDENIED", goome::EDENIED),
