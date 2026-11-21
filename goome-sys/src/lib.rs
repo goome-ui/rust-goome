@@ -629,6 +629,7 @@ pub const GOOME_DIR_RTL: c_int = 2;
 
 extern "C" {
     pub fn goome_open(o: *const goome_opts, err: *mut c_int) -> *mut goome;
+    /// A normal resizable window, centered
     pub fn goome_open_app(title: *const c_char, w: c_int, h: c_int, err: *mut c_int) -> *mut goome;
     pub fn goome_close(g: *mut goome);
     pub fn goome_error(g: *mut goome) -> *const c_char;
@@ -644,6 +645,7 @@ extern "C" {
     pub fn goome_poll(g: *mut goome, ev: *mut goome_event, timeout_ms: c_int) -> c_int;
     pub fn goome_pointer(g: *mut goome, x: *mut c_double, y: *mut c_double, buttons: *mut c_int) -> c_int;
     pub fn goome_keyboard(g: *mut goome, on: c_int) -> c_int;
+    /// Overlay: focus + pointer capture until goome_grab(g, 0). window: drags keep going outside it
     pub fn goome_grab(g: *mut goome, on: c_int) -> c_int;
     pub fn goome_grabbed(g: *mut goome) -> c_int;
     pub fn goome_hotkey(g: *mut goome, combo: *const c_char, id: c_int) -> c_int;
@@ -654,25 +656,41 @@ extern "C" {
     pub fn goome_now_ms() -> c_long;
     pub fn goome_mode(g: *mut goome) -> c_int;
     pub fn goome_window_title(g: *mut goome, title: *const c_char) -> c_int;
+    /// Logical client size
     pub fn goome_window_size(g: *mut goome, w: c_int, h: c_int) -> c_int;
+    /// Set=1 moves it, 0 reads it. ENOTSUP where the os wont say (wayland)
     pub fn goome_window_pos(g: *mut goome, x: *mut c_int, y: *mut c_int, set: c_int) -> c_int;
+    /// GOOME_STATE_*
     pub fn goome_window_state(g: *mut goome, state: c_int) -> c_int;
     pub fn goome_window_get_state(g: *mut goome) -> c_int;
+    /// Native move (0) or resize (GOOME_EDGE_* bits) from the press happening now
     pub fn goome_window_drag(g: *mut goome, edges: c_int) -> c_int;
     pub fn goome_window_show(g: *mut goome, on: c_int) -> c_int;
     pub fn goome_cursor(g: *mut goome, shape: c_int) -> c_int;
+    /// Last one asked for, offscreen embedders read this
     pub fn goome_cursor_shape(g: *mut goome) -> c_int;
     pub fn goome_clipboard_set(g: *mut goome, utf8: *const c_char) -> c_int;
+    /// Full length (can be > cap-1, buf gets cut + nul), <0 error. can block ~250ms on x11/wayland
     pub fn goome_clipboard_get(g: *mut goome, buf: *mut c_char, cap: c_int) -> c_int;
+    /// Full path of the last GOOME_DROP, good until the next poll
     pub fn goome_drop_path(g: *mut goome) -> *const c_char;
+    /// Full utf-8 of the last GOOME_TEXT / GOOME_PREEDIT, good until the next poll
     pub fn goome_event_text(g: *mut goome) -> *const c_char;
+    /// Byte offset of the caret in the last preedit text
     pub fn goome_preedit_cursor(g: *mut goome) -> c_int;
+    /// Ime on/off, caret (logical) is where the candidate window goes
     pub fn goome_text_input(g: *mut goome, on: c_int, caret: *const goome_rect) -> c_int;
+    /// Queue an event, any mode
     pub fn goome_push(g: *mut goome, ev: *const goome_event) -> c_int;
+    /// Offscreen only
     pub fn goome_resize(g: *mut goome, w: c_int, h: c_int, scale: c_double) -> c_int;
+    /// Last frame goome_end sent, px = premultiplied argb, good until the next goome_begin
     pub fn goome_frame(g: *mut goome, out: *mut goome_image) -> c_int;
+    /// 1 if x,y is in the hit rects of the last goome_end
     pub fn goome_hit(g: *mut goome, x: c_double, y: c_double) -> c_int;
+    /// Real px rect that changed since the last call, 0 = nothing, 1 = r filled. first one after open/resize is the whole frame
     pub fn goome_frame_dirty(g: *mut goome, r: *mut goome_rect) -> c_int;
+    /// Copy r (real px, NULL = whole) of the last frame, dst = r's top left
     pub fn goome_frame_copy(g: *mut goome, dst: *mut c_void, dst_stride_bytes: c_int, format: c_int, r: *const goome_rect) -> c_int;
     pub fn goome_save_ppm(path: *const c_char, px: *const u32, w: c_int, h: c_int, stride: c_int) -> c_int;
     pub fn goome_clear(c: *mut goome_canvas);
@@ -689,19 +707,27 @@ extern "C" {
     pub fn goome_font_count() -> c_int;
     pub fn goome_canvas_blit(dst: *mut goome_canvas, src: *const goome_canvas, alpha: c_double, dx: c_double, dy: c_double);
     pub fn goome_radius(r: c_double) -> goome_radii;
+    /// Snaps to whole px, 16 deep, goome_begin resets it
     pub fn goome_clip_push(c: *mut goome_canvas, x: c_double, y: c_double, w: c_double, h: c_double);
     pub fn goome_clip_pop(c: *mut goome_canvas);
     pub fn goome_draw_rrect(c: *mut goome_canvas, x: c_double, y: c_double, w: c_double, h: c_double, r: goome_radii, argb: u32);
     pub fn goome_draw_rrect_line(c: *mut goome_canvas, x: c_double, y: c_double, w: c_double, h: c_double, r: goome_radii, width: c_double, argb: u32);
     pub fn goome_draw_rrect_grad(c: *mut goome_canvas, x: c_double, y: c_double, w: c_double, h: c_double, r: goome_radii, from: u32, to: u32, sideways: c_int);
+    /// Blur like css box-shadow
     pub fn goome_draw_shadow(c: *mut goome_canvas, x: c_double, y: c_double, w: c_double, h: c_double, radius: c_double, blur: c_double, argb: u32);
     pub fn goome_draw_circle(c: *mut goome_canvas, cx: c_double, cy: c_double, r: c_double, argb: u32);
+    /// R = middle of the stroke
     pub fn goome_draw_ring(c: *mut goome_canvas, cx: c_double, cy: c_double, r: c_double, width: c_double, argb: u32);
+    /// Radians, 0 = 3 oclock, clockwise, round caps
     pub fn goome_draw_arc(c: *mut goome_canvas, cx: c_double, cy: c_double, r: c_double, width: c_double, a0: c_double, a1: c_double, argb: u32);
+    /// X,y pairs, nonzero fill
     pub fn goome_draw_poly(c: *mut goome_canvas, xy: *const c_double, n: c_int, argb: u32);
+    /// Png, jpeg, bmp, ppm, qoi. picks by content, not name
     pub fn goome_bitmap_load(path: *const c_char, out: *mut goome_bitmap) -> c_int;
     pub fn goome_bitmap_load_mem(data: *const c_void, n: usize, out: *mut goome_bitmap) -> c_int;
+    /// Why the last load failed
     pub fn goome_bitmap_error() -> *const c_char;
+    /// Plain argb in, copied
     pub fn goome_bitmap_from_argb(argb: *const u32, w: c_int, h: c_int, out: *mut goome_bitmap) -> c_int;
     pub fn goome_bitmap_free(b: *mut goome_bitmap);
     pub fn goome_draw_bitmap(c: *mut goome_canvas, b: *const goome_bitmap, x: c_double, y: c_double, w: c_double, h: c_double, r: goome_radii, tint: u32);
@@ -718,6 +744,7 @@ extern "C" {
         h: c_double,
         tint: u32,
     );
+    /// L t r bm = border sizes in bitmap px
     pub fn goome_draw_bitmap_nine(
         c: *mut goome_canvas,
         b: *const goome_bitmap,
@@ -730,27 +757,40 @@ extern "C" {
         r: c_double,
         bm: c_double,
     );
+    /// .ttf .otf .ttc
     pub fn goome_font_load(path: *const c_char) -> *mut goome_font;
+    /// Face in a .ttc, fontconfig hands these out
     pub fn goome_font_load_index(path: *const c_char, index: c_int) -> *mut goome_font;
     pub fn goome_font_load_mem(data: *const c_void, n: usize, copy: c_int) -> *mut goome_font;
+    /// NULL = the desktops usual ui font
     pub fn goome_font_system(name: *const c_char) -> *mut goome_font;
     pub fn goome_font_free(f: *mut goome_font);
+    /// Y = top, NULL font = built in
     pub fn goome_text(c: *mut goome_canvas, f: *mut goome_font, size: c_double, x: c_double, y: c_double, utf8: *const c_char, argb: u32) -> c_double;
     pub fn goome_text_measure(f: *mut goome_font, size: c_double, utf8: *const c_char, height: *mut c_double) -> c_double;
     pub fn goome_text_line_height(f: *mut goome_font, size: c_double) -> c_double;
+    /// Tried in order for chars f doesnt have, f doesnt free it. goome_font_system adds the emoji font by itself
     pub fn goome_font_fallback(f: *mut goome_font, fallback: *mut goome_font);
+    /// Paragraph direction for all text, AUTO = from the first strong letter of each line
     pub fn goome_text_dir(dir: c_int);
     pub fn goome_ui_new(g: *mut goome) -> *mut goome_ui;
     pub fn goome_ui_free(u: *mut goome_ui);
     pub fn goome_ui_theme(u: *mut goome_ui) -> *mut goome_theme;
+    /// Leaves font alone
     pub fn goome_ui_theme_dark(t: *mut goome_theme);
     pub fn goome_ui_theme_light(t: *mut goome_theme);
+    /// 1 if the ui used it
     pub fn goome_ui_feed(u: *mut goome_ui, ev: *const goome_event) -> c_int;
+    /// NULL = nothing to draw on, skip the frame
     pub fn goome_ui_begin(u: *mut goome_ui, mon: c_int) -> *mut goome_canvas;
+    /// Sends the frame with every widgets hit area
     pub fn goome_ui_end(u: *mut goome_ui);
     pub fn goome_ui_hit(u: *mut goome_ui, x: c_double, y: c_double, w: c_double, h: c_double);
+    /// 1 while something still moves, draw again soon
     pub fn goome_ui_animating(u: *mut goome_ui) -> c_int;
+    /// GOOME_WANT_* bits, good after goome_ui_feed and goome_ui_end
     pub fn goome_ui_wants(u: *mut goome_ui) -> c_int;
+    /// What the ui takes from the os by itself, default both, 0 = the app does it
     pub fn goome_ui_auto_grab(u: *mut goome_ui, wants: c_int);
     pub fn goome_ui_window(
         u: *mut goome_ui,
@@ -767,6 +807,7 @@ extern "C" {
     pub fn goome_ui_same_line(u: *mut goome_ui);
     pub fn goome_ui_space(u: *mut goome_ui, px: c_double);
     pub fn goome_ui_separator(u: *mut goome_ui);
+    /// Next widget, 0 = fill
     pub fn goome_ui_width(u: *mut goome_ui, w: c_double);
     pub fn goome_ui_label(u: *mut goome_ui, fmt: *const c_char, ...);
     pub fn goome_ui_heading(u: *mut goome_ui, text: *const c_char);
@@ -787,41 +828,60 @@ extern "C" {
     pub fn goome_ui_collapsing(u: *mut goome_ui, label: *const c_char, open: *mut c_int) -> c_int;
     pub fn goome_ui_progress(u: *mut goome_ui, frac: c_double, text: *const c_char);
     pub fn goome_ui_color(u: *mut goome_ui, label: *const c_char, argb: *mut u32) -> c_int;
+    /// For the widget right before it
     pub fn goome_ui_tooltip(u: *mut goome_ui, text: *const c_char);
+    /// The widget right before it
     pub fn goome_ui_hovered(u: *mut goome_ui) -> c_int;
+    /// Always call scroll_end
     pub fn goome_ui_scroll_begin(u: *mut goome_ui, id: *const c_char, h: c_double) -> c_int;
     pub fn goome_ui_scroll_end(u: *mut goome_ui);
+    /// Same labels in a loop, push the index first
     pub fn goome_ui_push_id(u: *mut goome_ui, id: *const c_char);
     pub fn goome_ui_pop_id(u: *mut goome_ui);
+    /// Root panel filling monitor 0, after goome_ui_begin
     pub fn goome_ui_app(u: *mut goome_ui, title: *const c_char, flags: c_int) -> c_int;
     pub fn goome_ui_app_end(u: *mut goome_ui);
     pub fn goome_ui_menubar_begin(u: *mut goome_ui) -> c_int;
     pub fn goome_ui_menubar_end(u: *mut goome_ui);
+    /// 1 = open, nest for submenus
     pub fn goome_ui_menu_begin(u: *mut goome_ui, label: *const c_char) -> c_int;
     pub fn goome_ui_menu_end(u: *mut goome_ui);
+    /// 1 = clicked, checked can be NULL
     pub fn goome_ui_menu_item(u: *mut goome_ui, label: *const c_char, shortcut: *const c_char, checked: *mut c_int) -> c_int;
     pub fn goome_ui_menu_separator(u: *mut goome_ui);
+    /// Right click on the widget before it (or empty space) opens it
     pub fn goome_ui_context_begin(u: *mut goome_ui, id: *const c_char) -> c_int;
     pub fn goome_ui_context_end(u: *mut goome_ui);
     pub fn goome_ui_popup_open(u: *mut goome_ui, id: *const c_char);
     pub fn goome_ui_popup_begin(u: *mut goome_ui, id: *const c_char) -> c_int;
     pub fn goome_ui_popup_end(u: *mut goome_ui);
+    /// Closes the innermost open popup, menu or modal
     pub fn goome_ui_popup_close(u: *mut goome_ui);
+    /// Centered, dims the rest, esc closes
     pub fn goome_ui_modal_begin(u: *mut goome_ui, title: *const c_char, open: *mut c_int) -> c_int;
     pub fn goome_ui_modal_end(u: *mut goome_ui);
     pub fn goome_ui_toast(u: *mut goome_ui, text: *const c_char, ms: c_int);
+    /// With GOOME_APP_STATUSBAR
     pub fn goome_ui_statusbar(u: *mut goome_ui, text: *const c_char);
+    /// The widget right before it has keyboard focus
     pub fn goome_ui_focused(u: *mut goome_ui) -> c_int;
+    /// Focus goes to the next widget
     pub fn goome_ui_set_focus(u: *mut goome_ui);
+    /// Multiline, GOOME_EDIT_*, 1 = changed
     pub fn goome_ui_text_edit(u: *mut goome_ui, id: *const c_char, buf: *mut c_char, cap: c_int, h: c_double, flags: c_int) -> c_int;
+    /// GOOME_TABLE_*
     pub fn goome_ui_table_begin(u: *mut goome_ui, id: *const c_char, cols: c_int, h: c_double, flags: c_int) -> c_int;
+    /// 0 = share the rest
     pub fn goome_ui_table_column(u: *mut goome_ui, name: *const c_char, width: c_double);
+    /// 1 = sort changed this frame, after the columns
     pub fn goome_ui_table_sort(u: *mut goome_ui, col: *mut c_int, desc: *mut c_int) -> c_int;
     pub fn goome_ui_table_row(u: *mut goome_ui);
     pub fn goome_ui_table_next(u: *mut goome_ui);
     pub fn goome_ui_table_end(u: *mut goome_ui);
+    /// 1 = open, then goome_ui_tree_end
     pub fn goome_ui_tree(u: *mut goome_ui, label: *const c_char, open: *mut c_int) -> c_int;
     pub fn goome_ui_tree_end(u: *mut goome_ui);
+    /// In a scroll area, only draw first..last
     pub fn goome_ui_list_clip(u: *mut goome_ui, count: c_int, row_h: c_double, first: *mut c_int, last: *mut c_int) -> c_int;
     pub fn goome_ui_drag_float(
         u: *mut goome_ui,
@@ -839,23 +899,38 @@ extern "C" {
     pub fn goome_ui_split_begin(u: *mut goome_ui, id: *const c_char, vertical: c_int, frac: *mut c_double) -> c_int;
     pub fn goome_ui_split_next(u: *mut goome_ui);
     pub fn goome_ui_split_end(u: *mut goome_ui);
+    /// The widget before it can be dragged
     pub fn goome_ui_drag_source(u: *mut goome_ui, type_: *const c_char, data: *const c_void, len: c_int) -> c_int;
+    /// Widget before it, bytes dropped or 0
     pub fn goome_ui_drop_target(u: *mut goome_ui, type_: *const c_char, buf: *mut c_void, cap: c_int) -> c_int;
     pub fn goome_ui_spinner(u: *mut goome_ui, size: c_double);
+    /// 1 = clicked
     pub fn goome_ui_link(u: *mut goome_ui, text: *const c_char) -> c_int;
     pub fn goome_ui_badge(u: *mut goome_ui, text: *const c_char, argb: u32);
+    /// Next widget goes at x,y from the content top left (scroll included), the flow doesnt move
     pub fn goome_ui_pos(u: *mut goome_ui, x: c_double, y: c_double);
+    /// Next widget size, 0 = its own size for that side
     pub fn goome_ui_size(u: *mut goome_ui, w: c_double, h: c_double);
+    /// GOOME_S_ color fields
     pub fn goome_ui_push_color(u: *mut goome_ui, what: c_int, argb: u32);
+    /// GOOME_S_RADIUS and the other numbers
     pub fn goome_ui_push_num(u: *mut goome_ui, what: c_int, v: c_double);
+    /// Per corner, beats GOOME_S_RADIUS until popped
     pub fn goome_ui_push_radii(u: *mut goome_ui, r: goome_radii);
+    /// NULL = built in
     pub fn goome_ui_push_font(u: *mut goome_ui, f: *mut goome_font);
+    /// GOOME_SKIN_*, NULL = no skin
     pub fn goome_ui_push_skin(u: *mut goome_ui, kind: c_int, s: *const goome_skin);
+    /// A whole theme, one push
     pub fn goome_ui_push_theme(u: *mut goome_ui, t: *const goome_theme);
     pub fn goome_ui_push_icon(u: *mut goome_ui, icon: c_int, b: *const goome_bitmap);
+    /// Pops the last n pushes of any kind
     pub fn goome_ui_pop(u: *mut goome_ui, n: c_int);
+    /// DRAG_X or DRAG_Y alone locks that axis, 1 = something happened
     pub fn goome_ui_custom(u: *mut goome_ui, id: *const c_char, w: c_double, h: c_double, flags: c_int, it: *mut goome_ui_item) -> c_int;
+    /// Goome_draw_* on it lands in the ui right here, clipped like the widgets
     pub fn goome_ui_canvas(u: *mut goome_ui) -> *mut goome_canvas;
+    /// N doubles kept per id, zero the first time
     pub fn goome_ui_store(u: *mut goome_ui, id: *const c_char, n: c_int) -> *mut c_double;
     pub fn goome_ui_theme_make(t: *mut goome_theme, accent: u32, dark: c_int, radius: c_double);
     pub fn goome_ui_theme_preset(t: *mut goome_theme, preset: c_int) -> c_int;
