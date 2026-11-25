@@ -1024,11 +1024,14 @@ impl Goome {
     pub fn frame_copy(&self, dst: &mut [u8], stride_bytes: usize, format: i32, r: Option<Rect>) -> Result<()> {
         let f = self.last_frame()?;
         let r = r.unwrap_or(Rect::new(0, 0, f.raw.w, f.raw.h));
-        if r.x < 0 || r.y < 0 || r.w < 0 || r.h < 0 || r.x + r.w > f.raw.w || r.y + r.h > f.raw.h {
+        if r.x < 0 || r.y < 0 || r.w < 0 || r.h < 0 || r.w > f.raw.w - r.x || r.h > f.raw.h - r.y {
             return Err(Error::new(EARG, "that rect isnt inside the frame"));
         }
+        if stride_bytes > i32::MAX as usize {
+            return Err(Error::new(EARG, "dst is too small for that rect"));
+        }
         let need = if r.h == 0 { 0 } else { (r.h as usize - 1) * stride_bytes + r.w as usize * 4 };
-        if stride_bytes < r.w as usize * 4 || dst.len() < need || stride_bytes > i32::MAX as usize {
+        if stride_bytes < r.w as usize * 4 || dst.len() < need {
             return Err(Error::new(EARG, "dst is too small for that rect"));
         }
         let rr = r.raw();

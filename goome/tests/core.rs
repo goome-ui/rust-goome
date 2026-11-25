@@ -145,6 +145,7 @@ fn offscreen() {
     let mut small = vec![0u8; 8];
     assert!(g.frame_copy(&mut small, 16, goome::FMT_RGBA, Some(goome::Rect::new(0, 0, 4, 4))).is_err());
     assert!(g.frame_copy(&mut rgba, 16, goome::FMT_RGBA, Some(goome::Rect::new(398, 0, 4, 4))).is_err());
+    assert!(g.frame_copy(&mut rgba, 16, goome::FMT_RGBA, Some(goome::Rect::new(i32::MAX, 0, 4, 4))).is_err());
 
     g.push(&Event::down(12.0, 13.0, 1)).unwrap();
     g.push(&Event::key('q' as i32, 0, "q")).unwrap();
