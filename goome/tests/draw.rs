@@ -150,6 +150,8 @@ fn bitmaps_load_and_fail() {
     let e = Bitmap::load("theres-no-file-here.png").err().unwrap();
     assert!(!e.message.is_empty());
     assert!(Bitmap::from_argb(&[0; 3], 2, 2).is_err());
+    assert!(Bitmap::from_argb(&[0; 3], 9, usize::MAX / 9 + 1).is_err());
+    assert!(Bitmap::from_premul(vec![0; 1], 1001, 2, usize::MAX - 999).is_err());
     let copy = b.clone();
     drop(b);
     assert_eq!(copy.w(), 2);

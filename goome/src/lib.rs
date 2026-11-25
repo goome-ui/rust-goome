@@ -160,6 +160,14 @@ pub(crate) fn to_chars(s: &str, out: &mut [c_char]) {
     }
 }
 
+pub(crate) fn fits(len: usize, w: usize, h: usize, stride: usize) -> bool {
+    let top = i32::MAX as usize;
+    if w > stride || w > top || h > top || stride > top {
+        return false;
+    }
+    h == 0 || (h - 1).checked_mul(stride).and_then(|n| n.checked_add(w)).is_some_and(|n| len >= n)
+}
+
 pub(crate) fn check(r: c_int) -> Result<()> {
     if r < 0 {
         Err(Error::code(r))
@@ -197,7 +205,7 @@ pub fn now_ms() -> i64 {
 
 /// Writes pixels out as a ppm file. `stride` is in pixels.
 pub fn save_ppm(path: &str, px: &[u32], w: usize, h: usize, stride: usize) -> Result<()> {
-    if w > stride || (h > 0 && px.len() < (h - 1) * stride + w) {
+    if !fits(px.len(), w, h, stride) {
         return Err(Error::new(EARG, "the pixels dont fit that size"));
     }
     let p = cstr(path);

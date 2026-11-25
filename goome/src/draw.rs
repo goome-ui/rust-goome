@@ -1,4 +1,4 @@
-use crate::{check, claim, cstr, from_c, sys, Claim, Error, Goome, Rect, Result, EARG};
+use crate::{check, claim, cstr, fits, from_c, sys, Claim, Error, Goome, Rect, Result, EARG};
 use std::cell::RefCell;
 use std::ffi::c_int;
 use std::marker::PhantomData;
@@ -120,7 +120,7 @@ impl Bitmap {
 
     /// Makes one from plain argb pixels. They get copied.
     pub fn from_argb(argb: &[u32], w: usize, h: usize) -> Result<Bitmap> {
-        if argb.len() < w * h {
+        if !fits(argb.len(), w, h, w) {
             return Err(Error::new(EARG, "not enough pixels for that size"));
         }
         let mut raw = Bitmap::empty();
@@ -131,7 +131,7 @@ impl Bitmap {
 
     /// Makes one from premultiplied argb pixels it takes over. `stride` is in pixels.
     pub fn from_premul(px: Vec<u32>, w: usize, h: usize, stride: usize) -> Result<Bitmap> {
-        if w > stride || (h > 0 && px.len() < (h - 1) * stride + w) {
+        if !fits(px.len(), w, h, stride) {
             return Err(Error::new(EARG, "not enough pixels for that size"));
         }
         let mut px = px;
@@ -358,7 +358,7 @@ pub trait Draw {
 
     /// Draws argb pixels (`iw` by `ih`) stretched into the rect.
     fn image(&mut self, x: f64, y: f64, w: f64, h: f64, px: &[u32], iw: usize, ih: usize) {
-        if px.len() < iw * ih {
+        if !fits(px.len(), iw, ih, iw) {
             return;
         }
         unsafe { sys::goome_draw_image(self.canvas_ptr(), x, y, w, h, px.as_ptr(), iw as c_int, ih as c_int) }
