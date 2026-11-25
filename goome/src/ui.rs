@@ -1190,7 +1190,7 @@ impl Ui {
 
     /// `n` doubles kept per id, zero the first time. Good for state of a custom widget.
     pub fn store(&mut self, id: &str, n: usize) -> &mut [f64] {
-        if n == 0 {
+        if n == 0 || n > 1 << 24 {
             return &mut [];
         }
         let t = cstr(id);

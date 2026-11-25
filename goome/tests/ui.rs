@@ -205,6 +205,7 @@ fn everything(ui: &mut Ui, st: &mut State) {
         if let Some(mut m) = p.modal("Sure?", &mut st.modal) {
             m.label("yes");
         }
+        assert!(p.store("count", (1 << 24) + 1).is_empty());
         let store = p.store("count", 2);
         store[0] += 1.0;
         st.stored = store[0];
